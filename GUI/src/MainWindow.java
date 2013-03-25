@@ -9,7 +9,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -37,8 +36,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.List;
+import org.eclipse.swt.layout.FillLayout;
 
-public class MainWindow extends ApplicationWindow// TODO add in List of field objects (see Matthew's Code). Also, make other changes from Bitching2
+public class MainWindow extends ApplicationWindow// TODO add in List of field objects (see Matthew's code). Also, make other changes from Bitching2
 {
 	private boolean runnable; // Can we run the current project? (Is the Execution Tab open?)
 	private final FormToolkit formToolkit = new FormToolkit(
@@ -54,6 +54,8 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 	Llama[] objectLabels; // The objects in the llamaBank
 	List listObjects; // The list of objects in play on the field
 	Interpreter interpreter; // This will compile and run the code
+	Browser browser;// The help browser
+	String homeURL = this.getClass().getResource("help/helpHome.htm").toString();// The url for the home file
 	
 	/**
 	 * Create the application window.
@@ -81,9 +83,10 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 		container.setLayout(new GridLayout(1, false));
 		
 		Composite toolbar = new Composite(container, SWT.NONE);
+		toolbar.setLayout(new FillLayout(SWT.HORIZONTAL));
 		GridData gd_toolbar = new GridData(SWT.LEFT, SWT.CENTER, true, false,
 				1, 1);
-		gd_toolbar.widthHint = 647;
+		gd_toolbar.widthHint = 3000;
 		toolbar.setLayoutData(gd_toolbar);
 		
 		Button newBtn = new Button(toolbar, SWT.NONE);
@@ -96,7 +99,6 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 			}
 		});
 		newBtn.setText("New");
-		newBtn.setBounds(0, 0, 64, 22);
 		newBtn.setToolTipText("New");
 		newBtn.setImage(SWTResourceManager.getImage(MainWindow.class, "/pictures/New.gif"));
 		
@@ -110,13 +112,11 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 				saveProject();// Save project (see lines at bottom of class)
 			}
 		});
-		saveBtn.setBounds(70, 0, 64, 22);
 		saveBtn.setToolTipText("Save");
 		saveBtn.setImage(SWTResourceManager.getImage(MainWindow.class, "/pictures/Save.gif"));
 		
 		Button openBtn = new Button(toolbar, SWT.NONE);
 		openBtn.setText("Open");
-		openBtn.setBounds(140, 0, 69, 22);
 		openBtn.addSelectionListener(new SelectionAdapter()
 		{
 			@Override
@@ -149,7 +149,6 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 			}
 		});
 		runBtn.setText("Run");
-		runBtn.setBounds(215, 0, 64, 22);
 		runBtn.setToolTipText("Run");
 		runBtn.setImage(SWTResourceManager.getImage(MainWindow.class, "/pictures/Play.gif"));
 		
@@ -166,7 +165,6 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 			}
 		});
 		stopBtn.setText("Stop");
-		stopBtn.setBounds(285, 0, 64, 22);
 		stopBtn.setToolTipText("Stop");
 		stopBtn.setImage(SWTResourceManager.getImage(MainWindow.class, "/pictures/Halt.gif"));
 		
@@ -206,12 +204,58 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 		codeBox.setLayoutData(gd_codeBox);
 		formToolkit.adapt(codeBox, true, true);
 		
-		Browser browser = new Browser(codeTabArea, SWT.BORDER);
-		browser.setUrl("http://www.tabbtigersharks.org");// TODO add help htmls (243 pixels wide)
-		GridData gd_browser = new GridData(SWT.RIGHT, SWT.FILL, false, true, 1,
-				1);
+		Composite browserArea = new Composite(codeTabArea, SWT.NONE);
+		browserArea.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1));
+		formToolkit.adapt(browserArea);
+		formToolkit.paintBordersFor(browserArea);
+		GridLayout gl_browserArea = new GridLayout(1, false);
+		gl_browserArea.marginWidth = 0;
+		gl_browserArea.marginHeight = 0;
+		browserArea.setLayout(gl_browserArea);
+		
+		Composite navButtons = new Composite(browserArea, SWT.NONE);
+		navButtons.setLayout(new FillLayout(SWT.HORIZONTAL));
+		GridData gd_navButtons = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
+		gd_navButtons.widthHint = 250;
+		navButtons.setLayoutData(gd_navButtons);
+		formToolkit.adapt(navButtons);
+		formToolkit.paintBordersFor(navButtons);
+		
+		Button btnBack = new Button(navButtons, SWT.NONE);
+		btnBack.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				browser.back();
+			}
+		});
+		formToolkit.adapt(btnBack, true, true);
+		btnBack.setText("Back");
+		
+		Button btnHome = new Button(navButtons, SWT.NONE);
+		btnHome.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				browser.setUrl(homeURL);
+			}
+		});
+		formToolkit.adapt(btnHome, true, true);
+		btnHome.setText("Home");
+		
+		Button btnForward = new Button(navButtons, SWT.NONE);
+		btnForward.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				browser.forward();
+			}
+		});
+		formToolkit.adapt(btnForward, true, true);
+		btnForward.setText("Forward");
+		browser = new Browser(browserArea, SWT.BORDER);
+		GridData gd_browser = new GridData(SWT.LEFT, SWT.CENTER, false, true, 1, 1);
 		gd_browser.widthHint = 250;
+		gd_browser.heightHint = 2000;
 		browser.setLayoutData(gd_browser);
+		browser.setUrl(homeURL);
 		formToolkit.adapt(browser);
 		formToolkit.paintBordersFor(browser);
 		
@@ -237,7 +281,7 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 		GridData gd_llamaBank = new GridData(SWT.LEFT, SWT.TOP, true, true,
 				1, 1);
 		gd_llamaBank.widthHint = 273;
-		gd_llamaBank.heightHint = 2000;
+		gd_llamaBank.heightHint = 512;
 		llamaBank.setLayoutData(gd_llamaBank);
 		formToolkit.adapt(llamaBank);
 		formToolkit.paintBordersFor(llamaBank);
@@ -252,8 +296,8 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 			for (int j = 0; j < 8; j++)
 			{
 				objectLabels[counter] = new Llama(llamaBank, 64 * i + 32, 64 * j + 32, 64, 64);// Place the llamas in the bank
-				objectLabels[counter].drawBorder();// These llamas have borders, the ones in the field do not
 				// TODO need to change image to Llama.gif
+				objectLabels[counter].setAlignment(SWT.CENTER);
 				objectLabels[counter].setImage(SWTResourceManager.getImage(MainWindow.class, "/pictures/Open.gif"));
 				selectedObject[counter] = false;// Initially, none of the objects are selected
 				objectLabels[counter].addMouseListener(new MouseAdapter()
@@ -264,6 +308,7 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 						{
 							if (e.widget == objectLabels[k])
 							{
+								objectLabels[k].drawBorder();// Add a border
 								// Change Background
 								Device device = Display.getCurrent();
 								Color newColor = new Color(device, 200, 200, 200);
@@ -272,6 +317,7 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 							}
 							else
 							{
+								objectLabels[k].clearBorder();// Remove existing borders
 								// Reset Background
 								Device device = Display.getCurrent();
 								Color newColor = device.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
@@ -338,18 +384,14 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 		formToolkit.paintBordersFor(execButtonsAndList);
 		
 		Composite execButtons = new Composite(execButtonsAndList, SWT.NONE);
+		execButtons.setLayout(new FillLayout(SWT.HORIZONTAL));
 		GridData gd_execButtons = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
 		gd_execButtons.widthHint = 273;
 		execButtons.setLayoutData(gd_execButtons);
 		formToolkit.adapt(execButtons);
 		formToolkit.paintBordersFor(execButtons);
-		execButtons.setLayout(new GridLayout(4, false));
 		
 		Button btnAdd = new Button(execButtons, SWT.NONE);
-		GridData gd_btnAdd = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnAdd.heightHint = 25;
-		gd_btnAdd.widthHint = 62;
-		btnAdd.setLayoutData(gd_btnAdd);
 		btnAdd.addSelectionListener(new SelectionAdapter()
 		{
 			@Override
@@ -435,9 +477,8 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 						{
 							int mouseX = arg0.x;
 							int mouseY = arg0.y;
-							Rectangle objectPosition = ((Llama) arg0.widget).getBounds();
-							int objectX = objectPosition.x;
-							int objectY = objectPosition.y;
+							int objectX = ((Llama) arg0.widget).x;
+							int objectY = ((Llama) arg0.widget).y;
 							if (spot == objectBeingDragged && !outOfBounds(mouseX + objectX, mouseY + objectY))
 							{
 								// Have object follow mouse while being dragged
@@ -475,23 +516,14 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 		btnAdd.setText("Add");
 		
 		Button btnEdit = new Button(execButtons, SWT.NONE);
-		GridData gd_btnEdit = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnEdit.widthHint = 62;
-		btnEdit.setLayoutData(gd_btnEdit);
 		formToolkit.adapt(btnEdit, true, true);
 		btnEdit.setText("Edit");
 		
 		Button btnSave = new Button(execButtons, SWT.NONE);
-		GridData gd_btnSave = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnSave.widthHint = 62;
-		btnSave.setLayoutData(gd_btnSave);
 		formToolkit.adapt(btnSave, true, true);
 		btnSave.setText("Save");
 		
 		Button btnLoad = new Button(execButtons, SWT.NONE);
-		GridData gd_btnLoad = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_btnLoad.widthHint = 62;
-		btnLoad.setLayoutData(gd_btnLoad);
 		formToolkit.adapt(btnLoad, true, true);
 		btnLoad.setText("Load");
 		
