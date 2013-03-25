@@ -8,3 +8,5 @@ This is a program designed to help kids from the ages of 7-13 learn the basic sk
 - User Input
 - Program Flow
 - More
+
+To edit or run this project, copy the "GUI" folder into your workspace folder for Eclipse
