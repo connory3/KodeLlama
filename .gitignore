@@ -1,4 +1,5 @@
 *.class
+*.gif
 
 # Package Files #
 *.jar
