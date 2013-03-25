@@ -38,7 +38,7 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.List;
 
-public class MainWindow extends ApplicationWindow// TODO add in List of field objects (see Bitching2). Also, make other changes from Bitching2
+public class MainWindow extends ApplicationWindow// TODO add in List of field objects (see Matthew's Code). Also, make other changes from Bitching2
 {
 	private boolean runnable; // Can we run the current project? (Is the Execution Tab open?)
 	private final FormToolkit formToolkit = new FormToolkit(
