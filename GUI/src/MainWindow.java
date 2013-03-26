@@ -38,7 +38,7 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.layout.FillLayout;
 
-public class MainWindow extends ApplicationWindow// TODO add in List of field objects (see Matthew's code). Also, make other changes from Bitching2
+public class MainWindow extends ApplicationWindow
 {
 	private boolean runnable; // Can we run the current project? (Is the Execution Tab open?)
 	private final FormToolkit formToolkit = new FormToolkit(
@@ -483,8 +483,8 @@ public class MainWindow extends ApplicationWindow// TODO add in List of field ob
 							{
 								// Have object follow mouse while being dragged
 								//((Llama) arg0.widget).setBounds(mouseX + objectX - 32, mouseY + objectY - 32, 64, 64);
-								((Llama) arg0.widget).x = mouseX + objectX;
-								((Llama) arg0.widget).y = mouseY + objectY;
+								((Llama) arg0.widget).x = mouseX - 32 + objectX;
+								((Llama) arg0.widget).y = mouseY - 32 + objectY;
 								((Llama) arg0.widget).refreshBounds();
 							}
 						}
