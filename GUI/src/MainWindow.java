@@ -464,6 +464,8 @@ public class MainWindow extends ApplicationWindow
 					});
 					// TODO Add more to the right click menu
 					programObjects.get(spot).setMenu(popupMenu);// Associate menu with the object
+					programObjects.get(spot).setAlignment(SWT.CENTER);// Put image in center of llama
+					
 					programObjects.get(spot).addDragDetectListener(new DragDetectListener()
 					{
 						public void dragDetected(DragDetectEvent arg0)
@@ -613,6 +615,7 @@ public class MainWindow extends ApplicationWindow
 		txtOutput.setText("");
 		commandLine.setText("");
 		codeBox.setText("");
+		listObjects.remove(0, 1);//TODO remove ALL of the list elements
 		for (int i = 0; i < programObjects.size(); i++)
 		{
 			programObjects.get(i).dispose();// remove objects from the field
