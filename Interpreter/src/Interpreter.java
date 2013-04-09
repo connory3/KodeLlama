@@ -164,12 +164,11 @@ public class Interpreter {
 		System.out.println(b);
 		String bool = b.trim();
 
-		if (bool.startsWith("(") && bool.endsWith(")") ) {
-			
-			if(!bool.contains("and")
-				&& !bool.contains("or"))
+		if (bool.startsWith("(") && bool.endsWith(")")) {
+
+			if (!bool.contains("and") && !bool.contains("or"))
 				return evaluateBoolean(bool.substring(1, bool.length() - 1));
-			else{
+			else {
 				int count = 1;
 				int spot1 = 1;
 				boolean getsToZero = false;
@@ -179,7 +178,7 @@ public class Interpreter {
 							|| bool.indexOf('(', spot1) == -1) {
 						count--;
 						spot1 = bool.indexOf(')', spot1) + 1;
-						if(count == 0 && spot1 < bool.length()){
+						if (count == 0 && spot1 < bool.length()) {
 							getsToZero = true;
 						}
 						// System.out.println("here");
@@ -188,7 +187,7 @@ public class Interpreter {
 						spot1 = bool.indexOf('(', spot1) + 1;
 					}
 				}
-				if(!getsToZero){
+				if (!getsToZero) {
 					return evaluateBoolean(bool.substring(1, bool.length() - 1));
 				}
 			}
@@ -260,8 +259,8 @@ public class Interpreter {
 				if (bool.contains(">=")) {
 					String[] toCheck = bool.split(">=");
 					// assume two items
-					toCheck[0].trim();
-					toCheck[1].trim();
+					toCheck[0] = toCheck[0].trim();
+					toCheck[1] = toCheck[1].trim();
 
 					// we only care about ints and doubles, so we'll ignore
 					// other cases!
@@ -342,8 +341,8 @@ public class Interpreter {
 				} else if (bool.contains("<=")) {
 					String[] toCheck = bool.split("<=");
 					// assume two items
-					toCheck[0].trim();
-					toCheck[1].trim();
+					toCheck[0] = toCheck[0].trim();
+					toCheck[1] = toCheck[1].trim();
 
 					// we only care about ints and doubles, so we'll ignore
 					// other cases!
@@ -414,340 +413,337 @@ public class Interpreter {
 							}
 						}
 					}
-				
-							
 
-						} else if (bool.contains("=")) {
-							String[] toCheck = bool.split("=");
-							// assume two items
-							toCheck[0].trim();
-							toCheck[1].trim();
+				} else if (bool.contains("=")) {
+					String[] toCheck = bool.split("=");
+					// assume two items
+					toCheck[0] = toCheck[0].trim();
+					toCheck[1] = toCheck[1].trim();
 
-							// check if we're dealing with integers
-							boolean prim1 = false, prim2 = false;
-							int p1 = 0, p2 = -1;
+					// check if we're dealing with integers
+					boolean prim1 = false, prim2 = false;
+					int p1 = 0, p2 = -1;
 
-							try {
-								p1 = Integer.parseInt(toCheck[0]);
-								prim1 = true;
-							} catch (Exception e) {
+					try {
+						p1 = Integer.parseInt(toCheck[0]);
+						prim1 = true;
+					} catch (Exception e) {
 
-							}
-							try {
-								p2 = Integer.parseInt(toCheck[1]);
-								prim2 = true;
-							} catch (Exception e) {
+					}
+					try {
+						p2 = Integer.parseInt(toCheck[1]);
+						prim2 = true;
+					} catch (Exception e) {
 
-							}
+					}
 
-							// next, we check if we do, in fact, have integers,
-							// and if
-							// so, whether they're equal to each other
+					// next, we check if we do, in fact, have integers,
+					// and if
+					// so, whether they're equal to each other
 
-							if (ints.containsKey(toCheck[0]) || prim1) {
-								if (ints.containsKey(toCheck[1]) || prim2) {
-									if (prim1 && prim2) {
-										return p1 == p2;
-									} else if (prim1) {
-										return p1 == ints.get(toCheck[1]);
-									} else if (prim2) {
-										return p2 == ints.get(toCheck[0]);
-									} else {
-										return ints.get(toCheck[0]) == ints
-												.get(toCheck[1]);
-									}
-								}
-								// in the event that one is an integer and the
-								// other is
-								// not - then we return false.
-								return false;
-							}
-
-							// doubles
-
-							prim1 = false;
-							prim2 = false;
-							double p11 = 0., p21 = -1.;
-
-							try {
-								p11 = Double.parseDouble(toCheck[0]);
-								prim1 = true;
-							} catch (Exception e) {
-
-							}
-							try {
-								p21 = Double.parseDouble(toCheck[1]);
-								prim2 = true;
-							} catch (Exception e) {
-
-							}
-
-							if (decimals.containsKey(toCheck[0]) || prim1) {
-								if (decimals.containsKey(toCheck[1]) || prim2) {
-									if (prim1 && prim2) {
-										return p11 == p21;
-									} else if (prim1) {
-										return p11 == decimals.get(toCheck[1]);
-									} else if (prim2) {
-										return p21 == decimals.get(toCheck[0]);
-									} else {
-										return decimals.get(toCheck[0]) == decimals
-												.get(toCheck[1]);
-									}
-								}
-								return false;
-							}
-							// check booleans
-
-							// System.out.println("to here");
-
-							prim1 = false;
-							prim2 = false;
-							boolean p = false, q = false;
-
-							try {
-								p = parseBoolean(toCheck[0]);
-								prim1 = true;
-							} catch (Exception e) {
-
-							}
-							try {
-								q = parseBoolean(toCheck[1]);
-								prim2 = true;
-							} catch (Exception e) {
-
-							}
-
-							if (bools.containsKey(toCheck[0]) || prim1) {
-								if (bools.containsKey(toCheck[1]) || prim2) {
-									if (prim1 && prim2) {
-										return p == q;
-									} else if (prim1) {
-										return p == bools.get(toCheck[1]);
-									} else if (prim2) {
-										return q == bools.get(toCheck[0]);
-									} else {
-										return bools.get(toCheck[0]) == bools
-												.get(toCheck[1]);
-									}
-								}
-								return false;
-							}
-
-							// We can check for equality of lists and arrays
-							// here.
-							// Currently this is not supported.
-
-							// Let's check strings - gotta do this last, since
-							// it
-							// contains the overall else case
-
-							prim1 = true;
-							prim2 = true;
-
-							if (strings.containsKey(toCheck[0])) {
-
-								if (strings.containsKey(toCheck[1])) {
-									return strings.get(toCheck[0]).equals(
-											strings.get(toCheck[1]));
-								} else {
-
-									return strings.get(toCheck[0]).equals(
-											toCheck[1]);
-
-								}
-							} else if (strings.containsKey(toCheck[1])) {
-								return strings.get(toCheck[1]).equals(
-										toCheck[0]);
+					if (ints.containsKey(toCheck[0]) || prim1) {
+						if (ints.containsKey(toCheck[1]) || prim2) {
+							if (prim1 && prim2) {
+								return p1 == p2;
+							} else if (prim1) {
+								return p1 == ints.get(toCheck[1]);
+							} else if (prim2) {
+								return p2 == ints.get(toCheck[0]);
 							} else {
-								return toCheck[0].equals(toCheck[1]);
+								return ints.get(toCheck[0]) == ints
+										.get(toCheck[1]);
 							}
-
-						} else if (bool.contains(">")) {
-
-							String[] toCheck = bool.split(">");
-							// assume two items
-							toCheck[0].trim();
-							toCheck[1].trim();
-
-							// we only care about ints and doubles, so we'll
-							// ignore
-							// other cases!
-
-							boolean prim1 = false, prim2 = false;
-							double p11 = 0., p21 = -1.;
-
-							try {
-								p11 = Double.parseDouble(toCheck[0]);
-								prim1 = true;
-							} catch (Exception e) {
-
-							}
-							try {
-								p21 = Double.parseDouble(toCheck[1]);
-								prim2 = true;
-							} catch (Exception e) {
-
-							}
-
-							if (decimals.containsKey(toCheck[0]) || prim1) {
-								if (decimals.containsKey(toCheck[1]) || prim2) {
-									if (prim1 && prim2) {
-										return p11 > p21;
-									} else if (prim1) {
-										return p11 > decimals.get(toCheck[1]);
-									} else if (prim2) {
-										return p21 > decimals.get(toCheck[0]);
-									} else {
-										return decimals.get(toCheck[0]) > decimals
-												.get(toCheck[1]);
-									}
-								}
-								return false;
-
-							}
-							prim1 = false;
-							prim2 = false;
-							int p1 = 0, p2 = -1;
-
-							try {
-								p1 = Integer.parseInt(toCheck[0]);
-								prim1 = true;
-							} catch (Exception e) {
-
-							}
-							try {
-								p2 = Integer.parseInt(toCheck[1]);
-								prim2 = true;
-							} catch (Exception e) {
-
-							}
-
-							// next, we check if we do, in fact, have integers,
-							// and if
-							// so, whether they're equal to each other
-
-							if (ints.containsKey(toCheck[0]) || prim1) {
-								if (ints.containsKey(toCheck[1]) || prim2) {
-									if (prim1 && prim2) {
-										return p1 > p2;
-									} else if (prim1) {
-										return p1 > ints.get(toCheck[1]);
-									} else if (prim2) {
-										return p2 > ints.get(toCheck[0]);
-									} else {
-										return ints.get(toCheck[0]) > ints
-												.get(toCheck[1]);
-									}
-								}
-								// in the event that one is an integer and the
-								// other is
-								// not - then we return false.
-								return false;
-							}
-							return false;
-							// if there aren't ints or doubles (i.e. we've
-							// gotten this
-							// far!), we're assuming that this is just false.
-
-						} else if (bool.contains("<")) {
-							String[] toCheck = bool.split("<");
-							// assume two items
-							toCheck[0].trim();
-							toCheck[1].trim();
-
-							// we only care about ints and doubles, so we'll
-							// ignore
-							// other cases!
-
-							boolean prim1 = false, prim2 = false;
-							double p11 = 0., p21 = -1.;
-
-							try {
-								p11 = Double.parseDouble(toCheck[0]);
-								prim1 = true;
-							} catch (Exception e) {
-
-							}
-							try {
-								p21 = Double.parseDouble(toCheck[1]);
-								prim2 = true;
-							} catch (Exception e) {
-
-							}
-
-							if (decimals.containsKey(toCheck[0]) || prim1) {
-								if (decimals.containsKey(toCheck[1]) || prim2) {
-									if (prim1 && prim2) {
-										return p11 < p21;
-									} else if (prim1) {
-										return p11 < decimals.get(toCheck[1]);
-									} else if (prim2) {
-										return p21 < decimals.get(toCheck[0]);
-									} else {
-										return decimals.get(toCheck[0]) < decimals
-												.get(toCheck[1]);
-									}
-								}
-								return false;
-
-							}
-							prim1 = false;
-							prim2 = false;
-							int p1 = 0, p2 = -1;
-
-							try {
-								p1 = Integer.parseInt(toCheck[0]);
-								prim1 = true;
-							} catch (Exception e) {
-
-							}
-							try {
-								p2 = Integer.parseInt(toCheck[1]);
-								prim2 = true;
-							} catch (Exception e) {
-
-							}
-
-							// next, we check if we do, in fact, have integers,
-							// and if
-							// so, whether they're equal to each other
-
-							if (ints.containsKey(toCheck[0]) || prim1) {
-								if (ints.containsKey(toCheck[1]) || prim2) {
-									if (prim1 && prim2) {
-										return p1 < p2;
-									} else if (prim1) {
-										return p1 < ints.get(toCheck[1]);
-									} else if (prim2) {
-										return p2 < ints.get(toCheck[0]);
-									} else {
-										return ints.get(toCheck[0]) < ints
-												.get(toCheck[1]);
-									}
-								}
-								// in the event that one is an integer and the
-								// other is
-								// not - then we return false.
-								return false;
-							}
-							return false;
-							// if there aren't ints or doubles (i.e. we've
-							// gotten this
-							// far!), we're assuming that this is just false.
-
 						}
-						// in the event that one is an integer and the other is
+						// in the event that one is an integer and the
+						// other is
 						// not - then we return false.
 						return false;
 					}
-					//return false;
-					// if there aren't ints or doubles (i.e. we've gotten this
+
+					// doubles
+
+					prim1 = false;
+					prim2 = false;
+					double p11 = 0., p21 = -1.;
+
+					try {
+						p11 = Double.parseDouble(toCheck[0]);
+						prim1 = true;
+					} catch (Exception e) {
+
+					}
+					try {
+						p21 = Double.parseDouble(toCheck[1]);
+						prim2 = true;
+					} catch (Exception e) {
+
+					}
+
+					if (decimals.containsKey(toCheck[0]) || prim1) {
+						if (decimals.containsKey(toCheck[1]) || prim2) {
+							if (prim1 && prim2) {
+								return p11 == p21;
+							} else if (prim1) {
+								return p11 == decimals.get(toCheck[1]);
+							} else if (prim2) {
+								return p21 == decimals.get(toCheck[0]);
+							} else {
+								return decimals.get(toCheck[0]) == decimals
+										.get(toCheck[1]);
+							}
+						}
+						return false;
+					}
+					// check booleans
+
+					// System.out.println("to here");
+
+					prim1 = false;
+					prim2 = false;
+					boolean p = false, q = false;
+
+					try {
+						p = parseBoolean(toCheck[0]);
+						prim1 = true;
+					} catch (Exception e) {
+
+					}
+					try {
+						q = parseBoolean(toCheck[1]);
+						prim2 = true;
+					} catch (Exception e) {
+
+					}
+
+					if (bools.containsKey(toCheck[0]) || prim1) {
+						if (bools.containsKey(toCheck[1]) || prim2) {
+							if (prim1 && prim2) {
+								return p == q;
+							} else if (prim1) {
+								return p == bools.get(toCheck[1]);
+							} else if (prim2) {
+								return q == bools.get(toCheck[0]);
+							} else {
+								return bools.get(toCheck[0]) == bools
+										.get(toCheck[1]);
+							}
+						}
+						return false;
+					}
+
+					// We can check for equality of lists and arrays
+					// here.
+					// Currently this is not supported.
+
+					// Let's check strings - gotta do this last, since
+					// it
+					// contains the overall else case
+
+					prim1 = true;
+					prim2 = true;
+
+					if (strings.containsKey(toCheck[0])) {
+
+						if (strings.containsKey(toCheck[1])) {
+							return strings.get(toCheck[0]).equals(
+									strings.get(toCheck[1]));
+						} else {
+
+							return strings.get(toCheck[0]).equals(toCheck[1]);
+
+						}
+					} else if (strings.containsKey(toCheck[1])) {
+						return strings.get(toCheck[1]).equals(toCheck[0]);
+					} else {
+						System.out.println(toCheck[0] + "?=" + toCheck[1]);
+
+						return toCheck[0].equals(toCheck[1]);
+					}
+
+				} else if (bool.contains(">")) {
+
+					String[] toCheck = bool.split(">");
+					// assume two items
+					toCheck[0] = toCheck[0].trim();
+					toCheck[1] = toCheck[1].trim();
+
+					// we only care about ints and doubles, so we'll
+					// ignore
+					// other cases!
+
+					boolean prim1 = false, prim2 = false;
+					double p11 = 0., p21 = -1.;
+
+					try {
+						p11 = Double.parseDouble(toCheck[0]);
+						prim1 = true;
+					} catch (Exception e) {
+
+					}
+					try {
+						p21 = Double.parseDouble(toCheck[1]);
+						prim2 = true;
+					} catch (Exception e) {
+
+					}
+
+					if (decimals.containsKey(toCheck[0]) || prim1) {
+						if (decimals.containsKey(toCheck[1]) || prim2) {
+							if (prim1 && prim2) {
+								return p11 > p21;
+							} else if (prim1) {
+								return p11 > decimals.get(toCheck[1]);
+							} else if (prim2) {
+								return p21 > decimals.get(toCheck[0]);
+							} else {
+								return decimals.get(toCheck[0]) > decimals
+										.get(toCheck[1]);
+							}
+						}
+						return false;
+
+					}
+					prim1 = false;
+					prim2 = false;
+					int p1 = 0, p2 = -1;
+
+					try {
+						p1 = Integer.parseInt(toCheck[0]);
+						prim1 = true;
+					} catch (Exception e) {
+
+					}
+					try {
+						p2 = Integer.parseInt(toCheck[1]);
+						prim2 = true;
+					} catch (Exception e) {
+
+					}
+
+					// next, we check if we do, in fact, have integers,
+					// and if
+					// so, whether they're equal to each other
+
+					if (ints.containsKey(toCheck[0]) || prim1) {
+						if (ints.containsKey(toCheck[1]) || prim2) {
+							if (prim1 && prim2) {
+								return p1 > p2;
+							} else if (prim1) {
+								return p1 > ints.get(toCheck[1]);
+							} else if (prim2) {
+								return p2 > ints.get(toCheck[0]);
+							} else {
+								return ints.get(toCheck[0]) > ints
+										.get(toCheck[1]);
+							}
+						}
+						// in the event that one is an integer and the
+						// other is
+						// not - then we return false.
+						return false;
+					}
+					return false;
+					// if there aren't ints or doubles (i.e. we've
+					// gotten this
+					// far!), we're assuming that this is just false.
+
+				} else if (bool.contains("<")) {
+					String[] toCheck = bool.split("<");
+					// assume two items
+					toCheck[0] = toCheck[0].trim();
+					toCheck[1] = toCheck[1].trim();
+
+					// we only care about ints and doubles, so we'll
+					// ignore
+					// other cases!
+
+					boolean prim1 = false, prim2 = false;
+					double p11 = 0., p21 = -1.;
+
+					try {
+						p11 = Double.parseDouble(toCheck[0]);
+						prim1 = true;
+					} catch (Exception e) {
+
+					}
+					try {
+						p21 = Double.parseDouble(toCheck[1]);
+						prim2 = true;
+					} catch (Exception e) {
+
+					}
+
+					if (decimals.containsKey(toCheck[0]) || prim1) {
+						if (decimals.containsKey(toCheck[1]) || prim2) {
+							if (prim1 && prim2) {
+								return p11 < p21;
+							} else if (prim1) {
+								return p11 < decimals.get(toCheck[1]);
+							} else if (prim2) {
+								return p21 < decimals.get(toCheck[0]);
+							} else {
+								return decimals.get(toCheck[0]) < decimals
+										.get(toCheck[1]);
+							}
+						}
+						return false;
+
+					}
+					prim1 = false;
+					prim2 = false;
+					int p1 = 0, p2 = -1;
+
+					try {
+						p1 = Integer.parseInt(toCheck[0]);
+						prim1 = true;
+					} catch (Exception e) {
+
+					}
+					try {
+						p2 = Integer.parseInt(toCheck[1]);
+						prim2 = true;
+					} catch (Exception e) {
+
+					}
+
+					// next, we check if we do, in fact, have integers,
+					// and if
+					// so, whether they're equal to each other
+
+					if (ints.containsKey(toCheck[0]) || prim1) {
+						if (ints.containsKey(toCheck[1]) || prim2) {
+							if (prim1 && prim2) {
+								return p1 < p2;
+							} else if (prim1) {
+								return p1 < ints.get(toCheck[1]);
+							} else if (prim2) {
+								return p2 < ints.get(toCheck[0]);
+							} else {
+								return ints.get(toCheck[0]) < ints
+										.get(toCheck[1]);
+							}
+						}
+						// in the event that one is an integer and the
+						// other is
+						// not - then we return false.
+						return false;
+					}
+					return false;
+					// if there aren't ints or doubles (i.e. we've
+					// gotten this
 					// far!), we're assuming that this is just false.
 
 				}
+				// in the event that one is an integer and the other is
+				// not - then we return false.
+				return false;
+			}
+			// return false;
+			// if there aren't ints or doubles (i.e. we've gotten this
+			// far!), we're assuming that this is just false.
 
-			
+		}
+
 		return false;// if we get here, something happened that shouldn't, so
 						// we'll just say false and be done with it.
 
@@ -757,19 +753,24 @@ public class Interpreter {
 		ArrayList<Llama> l = new ArrayList<Llama>();
 		String s = "to eat\nafiejfije\nafefjiafie\nieflaifj\nend\n\n\nto haveCookies\nsetheija;fij\n iejifaj \neifaj\nend\n";
 		Interpreter i = new Interpreter(s, l);
-		System.out.println(i.evaluateBoolean("false = False"));
-		System.out.println(i.evaluateBoolean("10 <= 10"));
-		System.out.println(i.evaluateBoolean("not ((5 = 5) and (5 = 5))"));
+		System.out.println(i.evaluateBoolean("false = 12"));
+		System.out.println(i.evaluateBoolean("true = 1"));
+		System.out.println(i.evaluateBoolean("I > I"));
 
 	}
 
-	//
+	// my own personal parseBoolean function. Takes a string and returns true if
+	// the string is "true" or "1", false if the string is "false" or "0", and
+	// throws an exception otherwise - NullPointer if the input is null, and
+	// IllegalArgument if it doesn't match any of the hardcoded true/false
+	// values. Ignores case.
+
 	public static boolean parseBoolean(String s1) {
 		String s = s1.trim();
 		if (s != null) {
-			if (s.equalsIgnoreCase("true")) {
+			if (s.equalsIgnoreCase("true") || s.equalsIgnoreCase("1")) {
 				return true;
-			} else if (s.equalsIgnoreCase("false")) {
+			} else if (s.equalsIgnoreCase("false") || s.equalsIgnoreCase("0")) {
 				return false;
 			} else {
 				throw new IllegalArgumentException();
