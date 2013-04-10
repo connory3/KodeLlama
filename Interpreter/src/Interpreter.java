@@ -161,7 +161,7 @@ public class Interpreter {
 	}
 
 	public boolean evaluateBoolean(String b) {
-		System.out.println(b);
+		//System.out.println(b);
 		String bool = b.trim();
 
 		if (bool.startsWith("(") && bool.endsWith(")")) {
@@ -395,7 +395,7 @@ public class Interpreter {
 					} catch (Exception e) {
 
 					}
-					System.out.println(p1 + "    " + p2);
+					//System.out.println(p1 + "    " + p2);
 					// next, we check if we do, in fact, have integers, and if
 					// so, whether they're equal to each other
 
@@ -555,7 +555,7 @@ public class Interpreter {
 					} else if (strings.containsKey(toCheck[1])) {
 						return strings.get(toCheck[1]).equals(toCheck[0]);
 					} else {
-						System.out.println(toCheck[0] + "?=" + toCheck[1]);
+						//System.out.println(toCheck[0] + "?=" + toCheck[1]);
 
 						return toCheck[0].equals(toCheck[1]);
 					}
@@ -733,14 +733,19 @@ public class Interpreter {
 					// gotten this
 					// far!), we're assuming that this is just false.
 
+				}else{
+				// in this case, we're looking at something that has gotten through the filters but doesn't have =, >, <, <=, or >= in it. So we're going to treat it as a boolean literal
+					boolean retVal = false;
+					try{
+						retVal = parseBoolean(bool);
+					}catch(Exception e){
+						throw e;
+						//error - we got here and there was no literal
+					}
+					return retVal;
 				}
-				// in the event that one is an integer and the other is
-				// not - then we return false.
-				return false;
 			}
-			// return false;
-			// if there aren't ints or doubles (i.e. we've gotten this
-			// far!), we're assuming that this is just false.
+			
 
 		}
 
@@ -753,9 +758,9 @@ public class Interpreter {
 		ArrayList<Llama> l = new ArrayList<Llama>();
 		String s = "to eat\nafiejfije\nafefjiafie\nieflaifj\nend\n\n\nto haveCookies\nsetheija;fij\n iejifaj \neifaj\nend\n";
 		Interpreter i = new Interpreter(s, l);
-		System.out.println(i.evaluateBoolean("false = 12"));
-		System.out.println(i.evaluateBoolean("true = 1"));
-		System.out.println(i.evaluateBoolean("I > I"));
+		System.out.println(i.evaluateBoolean("true or false"));
+		System.out.println(i.evaluateBoolean("not true"));
+		System.out.println(i.evaluateBoolean("true and 10 < 55 or 10 = 10"));
 
 	}
 
