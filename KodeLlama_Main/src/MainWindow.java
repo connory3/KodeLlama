@@ -53,6 +53,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.layout.FillLayout;
 
@@ -377,16 +378,21 @@ public class MainWindow extends ApplicationWindow implements
 		formToolkit.adapt(display);
 		formToolkit.paintBordersFor(display);
 		
-		Composite llamaBank = new Composite(execTabArea, SWT.BORDER
+		ScrolledComposite sc = new ScrolledComposite(execTabArea, SWT.BORDER
 				| SWT.V_SCROLL);
-		GridData gd_llamaBank = new GridData(SWT.RIGHT, SWT.TOP, true, true, 1,
+		GridData gd_sc = new GridData(SWT.RIGHT, SWT.TOP, true, true, 1,
 				1);
-		gd_llamaBank.verticalIndent = 1;
-		gd_llamaBank.widthHint = 273;
-		gd_llamaBank.heightHint = 512;
-		llamaBank.setLayoutData(gd_llamaBank);
+		gd_sc.verticalIndent = 1;
+		gd_sc.widthHint = 273;
+		gd_sc.heightHint = 2000;
+		sc.setLayoutData(gd_sc);
+		formToolkit.adapt(sc);
+		formToolkit.paintBordersFor(sc);
+		
+		Composite llamaBank = new Composite(sc, SWT.NONE);
 		formToolkit.adapt(llamaBank);
 		formToolkit.paintBordersFor(llamaBank);
+		llamaBank.setBounds(0, 0, 256, 512);
 		
 		// Generate Llamas for Llama Bank
 		objectLabels = new Llama[32];// Is really a 4x8 matrix of Llamas (extended Labels)
@@ -437,6 +443,7 @@ public class MainWindow extends ApplicationWindow implements
 				counter++;// Go to next llama
 			}
 		}
+		sc.setContent(llamaBank);
 		
 		Composite execTextArea = new Composite(execTabArea, SWT.NONE);
 		execTextArea.setLayout(new GridLayout(1, false));
