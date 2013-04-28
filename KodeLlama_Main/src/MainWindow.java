@@ -3,9 +3,10 @@
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.zip.ZipEntry;
@@ -68,8 +69,6 @@ public class MainWindow extends ApplicationWindow implements
 	private Text commandLine; // The textbox for entering commands
 	Composite display;// The playing field for llamas
 	
-	private boolean runnable; // Can we run the current project? (Is the
-								// Execution Tab open?)
 	int objectBeingDragged; // The object we are moving around the display
 	ArrayList<Llama> programObjects; // The objects in the program
 	boolean[] selectedObject; // The objects currently selected
@@ -85,9 +84,10 @@ public class MainWindow extends ApplicationWindow implements
 	ArrayList<Llama> frozenLlamas = new ArrayList<Llama>(); // The llamas on the field that are frozen
 	ArrayList<Line> frozenLines = new ArrayList<Line>(); // The lines on the field that are frozen
 	boolean frozen = false; // Whether or not there is a frozen background
-	static MainWindow window;
-	boolean clear = false;
-	Image oldImage;
+	static MainWindow window; // Inception
+	boolean clear = false; // Used to clear the playing field of lines
+	Image oldImage; // The state of the display
+	TabFolder tabFolder; // The tab folder
 	
 	private int mx, my;
 	
@@ -97,18 +97,10 @@ public class MainWindow extends ApplicationWindow implements
 	public MainWindow()
 	{
 		super(null);
-		runnable = true;// We start in the Code tab, so we can't run anything
 		objectBeingDragged = -1;// No objects are selected from the Llamabank
 		programObjects = new ArrayList<Llama>(0);// Initialize the list of objects currently in playing
 		String resource = "pictures/Llama.gif";// location of defaultLlama image
-		URL url = Thread.currentThread().getContextClassLoader().getResource(resource);
-		if (url == null)
-		{
-			throw new RuntimeException("Cannot find resource on classpath: '" + resource + "'");
-		}
-		String file = url.getFile();// absolute path of defaultLlama
-		d = Display.getDefault();// Baz's Solution
-		defaultLlama = new Image(d, file);// Baz's Solution
+		defaultLlama = loadImage(resource);
 	}
 	
 	/**
@@ -183,19 +175,14 @@ public class MainWindow extends ApplicationWindow implements
 			@Override
 			public void widgetSelected(SelectionEvent e)
 			{
-				if (runnable)// Test to see if we are in the Execution Tab
+				if (tabFolder.getSelectionIndex() != 1)// Test to see if we are in the Execution Tab
 				{
-					System.gc();
-					runProject();// Run project (see lines at bottom of class)
+					tabFolder.setSelection(1);
 				}
-				else
-				// We are in the code tab
-				{
-					// Notify the user why we can't run the program
-					MessageBox error = new MessageBox(getShell());
-					error.setMessage("Please open the Execution Tab before running your project");
-					error.open();
-				}
+				tabFolder.setEnabled(false);
+				System.gc();
+				runProject();// Run project (see lines at bottom of class)
+				tabFolder.setEnabled(true);
 			}
 		});
 		runBtn.setText("Run");
@@ -209,10 +196,7 @@ public class MainWindow extends ApplicationWindow implements
 			@Override
 			public void widgetSelected(SelectionEvent e)
 			{
-				if (runnable)// Are we in Execution Tab
-				{
-					stopProject();// Stop Project
-				}
+				stopProject();// Stop Project
 			}
 		});
 		stopBtn.setText("Stop");
@@ -220,20 +204,7 @@ public class MainWindow extends ApplicationWindow implements
 		stopBtn.setImage(SWTResourceManager.getImage(MainWindow.class,
 				"/pictures/Halt.gif"));
 		
-		final TabFolder tabFolder = new TabFolder(container, SWT.NONE);
-		tabFolder.addSelectionListener(new SelectionAdapter()
-		{
-			@Override
-			public void widgetSelected(SelectionEvent e)
-			{
-				// If we are in Execution Tab, make runnable true
-				runnable = (tabFolder.getSelectionIndex() == 1) ? true : false;
-				if (!runnable)// If we change to Code tab
-				{
-					// stopProject();// Automatically stop the project
-				}
-			}
-		});
+		tabFolder = new TabFolder(container, SWT.NONE);
 		GridData gd_tabFolder = new GridData(SWT.LEFT, SWT.CENTER, true, true,
 				1, 1);
 		gd_tabFolder.heightHint = 2000;
@@ -392,21 +363,22 @@ public class MainWindow extends ApplicationWindow implements
 		Composite llamaBank = new Composite(sc, SWT.NONE);
 		formToolkit.adapt(llamaBank);
 		formToolkit.paintBordersFor(llamaBank);
-		llamaBank.setBounds(0, 0, 256, 512);
+		llamaBank.setBounds(0, 0, 256, 1024);
 		
 		// Generate Llamas for Llama Bank
-		objectLabels = new Llama[32];// Is really a 4x8 matrix of Llamas (extended Labels)
+		objectLabels = new Llama[64];// Is really a 4x8 matrix of Llamas (extended Labels)
 		// Each boolean in selectedObject corresponds to a llama. When the llama
 		// is selected, the corresponding boolean becomes true
-		selectedObject = new boolean[32];
+		selectedObject = new boolean[64];
 		int counter = 0;// Iterates through each Llama as we make them
+		Image[] imageSet = getDefaultSet();
 		for (int i = 0; i < 4; i++)
 		{
-			for (int j = 0; j < 8; j++)
+			for (int j = 0; j < 16; j++)
 			{
 				objectLabels[counter] = new Llama(llamaBank, 64 * i + 32,
 						64 * j + 32, 64, 64);// Place the llamas in the bank
-				objectLabels[counter].setImage(defaultLlama);// Use the default llama image for bank llamas
+				objectLabels[counter].setImage(imageSet[i * 16 + j]);// Use the default llama image for bank llamas
 				selectedObject[counter] = false;// Initially, none of the objects are selected
 				objectLabels[counter].addMouseListener(new MouseAdapter()
 				{
@@ -414,7 +386,7 @@ public class MainWindow extends ApplicationWindow implements
 					{
 						if (e.button == 1)// Left mouse click
 						{
-							for (int k = 0; k < 32; k++)
+							for (int k = 0; k < 64; k++)
 							{
 								if (e.widget == objectLabels[k])
 								{
@@ -685,8 +657,7 @@ public class MainWindow extends ApplicationWindow implements
 	{
 		newShell.setMinimumSize(new Point(700, 500));// Window can't be smaller
 														// than this
-		newShell.setImage(SWTResourceManager.getImage(getClass(),
-				"/pictures/Llama.gif"));
+		newShell.setImage(defaultLlama);
 		super.configureShell(newShell);
 		newShell.setText("KodeLlama");// Name the Window
 	}
@@ -1021,7 +992,7 @@ public class MainWindow extends ApplicationWindow implements
 	 * Run a single command from the command line
 	 */
 	
-	public String runCommand(String text, Llama llama)
+	/*public String runCommand(String text, Llama llama)
 	{
 		String command = "";
 		if (text.substring(0, text.indexOf('(')).contains("."))// Format of all
@@ -1426,7 +1397,7 @@ public class MainWindow extends ApplicationWindow implements
 			}
 		}
 		return ("Command not recognized: " + command);
-	}
+	}*/
 	
 	/**
 	 * Run a single command from the interpreter
@@ -1922,7 +1893,7 @@ public class MainWindow extends ApplicationWindow implements
 						null);
 				input.open();
 				String name = input.getValue();
-				if (name != null && !isTaken(name, true))
+				if (name != null && !isTaken(name, true) && isNameValid(name))
 				{
 					listObjects.setItem(
 							listObjects.indexOf(programObjects.get(spot).name),
@@ -1952,7 +1923,7 @@ public class MainWindow extends ApplicationWindow implements
 			{
 				// Check to see which, if any, llama has been selected
 				int selected = -1;// Assume no llama is selected
-				for (int i = 0; i < 32; i++)
+				for (int i = 0; i < 64; i++)
 				{
 					if (selectedObject[i])
 					{
@@ -1971,6 +1942,7 @@ public class MainWindow extends ApplicationWindow implements
 				else
 				{
 					programObjects.get(spot).setImage(objectLabels[selected].getImage());
+					programObjects.get(spot).redraw();
 				}
 			}
 		});
@@ -1995,14 +1967,16 @@ public class MainWindow extends ApplicationWindow implements
 				int mouseY = arg0.y;
 				int objectX = moved.x;
 				int objectY = moved.y;
+				int newx = mouseX - moved.width / 2 + objectX;
+				int newy = mouseY - moved.height / 2 + objectY;
 				if (spot == objectBeingDragged
-						&& !outOfBounds(mouseX + objectX, mouseY + objectY))
+						&& !outOfBounds(newx, newy))
 				{
 					// Have object follow mouse while being dragged
 					// ((Llama) arg0.widget).setBounds(mouseX + objectX - 32,
 					// mouseY + objectY - 32, 64, 64);
-					moved.x = mouseX - moved.width / 2 + objectX;
-					moved.y = mouseY - moved.height / 2 + objectY;
+					moved.x = newx;
+					moved.y = newy;
 					moved.refreshBounds();
 				}
 			}
@@ -2058,165 +2032,7 @@ public class MainWindow extends ApplicationWindow implements
 			{
 				Llama l = new Llama(display, 50, 50, 91, 91);
 				l.setImage(defaultLlama);// Use the image of the selected llama
-				// l.setBackground(null);
-				final int spot = programObjects.size();// The index of the new
-														// llama in the
-														// ArrayList
-				programObjects.add(l);// Add copy to the ArrayList
-				int j = 0;
-				l.name = theName;
-				while (l.name.equals(""))
-				{
-					if (!isTaken("Object" + (spot + j), false))
-					{
-						l.name = "Object" + (spot + j); // Store name in Llama
-					}
-					j++;
-				} // Keep trying higher numbers until you reach a name that
-					// isn't taken
-				listObjects.add(l.name); // Add a corresponding entry to the
-											// list
-				final Menu popupMenu = new Menu(programObjects.get(spot));// Create
-																			// right-click
-																			// menu
-																			// for
-																			// Field
-																			// objects
-				MenuItem nameItem = new MenuItem(popupMenu, SWT.NONE);
-				nameItem.setText(l.name);
-				nameItem.setEnabled(false);
-				new MenuItem(popupMenu, SWT.SEPARATOR);
-				MenuItem removeItem = new MenuItem(popupMenu, SWT.NONE);
-				removeItem.setText("Remove");
-				removeItem.addSelectionListener(new SelectionAdapter()
-				{
-					public void widgetSelected(SelectionEvent e)
-					{
-						// Remove llama from field
-						Llama toRemove = programObjects.get(spot);
-						toRemove.dispose();
-						listObjects.remove(toRemove.name);
-					}
-				});
-				MenuItem renameItem = new MenuItem(popupMenu, SWT.NONE);
-				renameItem.setText("Rename");
-				renameItem.addSelectionListener(new SelectionAdapter()
-				{
-					public void widgetSelected(SelectionEvent e)
-					{
-						InputDialog input = new InputDialog(
-								display.getShell(),
-								"Rename Llama",
-								"Type a new name for your llama, than press OK",
-								"", null);
-						input.open();
-						String name = input.getValue();
-						if (name != null && !isTaken(name, true))
-						{
-							listObjects.setItem(listObjects
-									.indexOf(programObjects.get(spot).name),
-									name);
-							programObjects.get(spot).name = name;
-							programObjects.get(spot).getMenu().getItems()[0]
-									.setText(name);
-						}
-					}
-				});
-				MenuItem colorItem = new MenuItem(popupMenu, SWT.NONE);
-				colorItem.setText("Set Color");
-				colorItem.addSelectionListener(new SelectionAdapter()
-				{
-					public void widgetSelected(SelectionEvent e)
-					{
-						ColorDialog cd = new ColorDialog(getShell());
-						cd.setRGB(programObjects.get(spot).penColor);
-						programObjects.get(spot).penColor = cd.open();
-					}
-				});
-				
-				programObjects.get(spot).setMenu(popupMenu);// Associate menu
-															// with the object
-				
-				programObjects.get(spot).addDragDetectListener(
-						new DragDetectListener()
-						{
-							public void dragDetected(DragDetectEvent arg0)
-							{
-								objectBeingDragged = spot;// Drag capability
-							}
-						});
-				programObjects.get(spot).addMouseMoveListener(
-						new MouseMoveListener()
-						{
-							public void mouseMove(MouseEvent arg0)
-							{
-								Llama moved = (Llama) arg0.widget;
-								int mouseX = arg0.x;
-								int mouseY = arg0.y;
-								int objectX = moved.x;
-								int objectY = moved.y;
-								if (spot == objectBeingDragged
-										&& !outOfBounds(mouseX + objectX,
-												mouseY + objectY))
-								{
-									// Have object follow mouse while being
-									// dragged
-									// ((Llama) arg0.widget).setBounds(mouseX +
-									// objectX - 32, mouseY + objectY - 32, 64,
-									// 64);
-									moved.x = mouseX - moved.width / 2
-											+ objectX;
-									moved.y = mouseY - moved.height / 2
-											+ objectY;
-									moved.refreshBounds();
-								}
-							}
-							
-							private boolean outOfBounds(int X, int Y)// Don't
-																		// leave
-																		// the
-																		// playing
-																		// field
-							{
-								Point size = display.getSize();// Get size of
-																// field
-								if (X >= size.x/* right */|| Y >= size.y/* bottom */
-										|| X < 0/* left */|| Y < 0/* top */)
-								{
-									return true;
-								}
-								return false;
-							}
-						});
-				programObjects.get(spot).addMouseListener(new MouseAdapter()
-				{
-					public void mouseDown(MouseEvent e)
-					{
-						if (e.button == 3)// right mouse click
-						{
-							popupMenu.setVisible(true);// used for listObjects
-														// right click event
-						}
-					}
-					
-					public void mouseUp(MouseEvent e)
-					{
-						if (spot == objectBeingDragged)
-						{
-							objectBeingDragged = -1;// Release object from mouse
-						}
-					}
-					
-					public void mouseDoubleClick(MouseEvent e)
-					{
-						if (e.button == 1)// left mouse click
-						{
-							commandLine.append(programObjects.get(spot).name
-									+ ".");
-							commandLine.setFocus();// put cursor in commandLine
-						}
-					}
-				});
+				newFieldLlama(l);
 			}
 		});
 	}
@@ -2249,7 +2065,7 @@ public class MainWindow extends ApplicationWindow implements
 	{
 		// Check to see which, if any, llama has been selected
 		int selected = -1;// Assume no llama is selected
-		for (int i = 0; i < 32; i++)
+		for (int i = 0; i < 64; i++)
 		{
 			if (selectedObject[i])
 			{
@@ -2266,5 +2082,108 @@ public class MainWindow extends ApplicationWindow implements
 			messageDialog.open();
 		}
 		return selected;
+	}
+	
+	private Image[] getDefaultSet()
+	{
+		Image[] array = new Image[64];
+		array[0] = defaultLlama;
+		array[1] = loadImage("imageSet\\a murder of one.png");
+		array[2] = loadImage("imageSet\\adams.png");
+		array[3] = loadImage("imageSet\\astronaut.png");
+		array[4] = loadImage("imageSet\\basketball.png");
+		array[5] = loadImage("imageSet\\bat.png");
+		array[6] = loadImage("imageSet\\beachball.png");
+		array[7] = loadImage("imageSet\\bee.png");
+		array[8] = loadImage("imageSet\\campfire.png");
+		array[9] = loadImage("imageSet\\car.png");
+		array[10] = loadImage("imageSet\\castle.png");
+		array[11] = loadImage("imageSet\\cat.png");
+		array[12] = loadImage("imageSet\\clubs.png");
+		array[13] = loadImage("imageSet\\controller.png");
+		array[14] = loadImage("imageSet\\diamond.png");
+		array[15] = loadImage("imageSet\\doctor.png");
+		array[16] = loadImage("imageSet\\dog.png");
+		array[17] = loadImage("imageSet\\dolphin.png");
+		array[18] = loadImage("imageSet\\dragon.png");
+		array[19] = loadImage("imageSet\\earth.png");
+		array[20] = loadImage("imageSet\\firefighter.png");
+		array[21] = loadImage("imageSet\\flower.png");
+		array[22] = loadImage("imageSet\\frog.png");
+		array[23] = loadImage("imageSet\\grapes.png");
+		array[24] = loadImage("imageSet\\heart.png");
+		array[25] = loadImage("imageSet\\horse.png");
+		array[26] = loadImage("imageSet\\house.png");
+		array[27] = loadImage("imageSet\\island.png");
+		array[28] = loadImage("imageSet\\leaf.png");
+		array[29] = loadImage("imageSet\\lightning.png");
+		array[30] = loadImage("imageSet\\lion.png");
+		array[31] = loadImage("imageSet\\monster.png");
+		array[32] = loadImage("imageSet\\moon.png");
+		array[33] = loadImage("imageSet\\motorcycle.png");
+		array[34] = loadImage("imageSet\\mountains.png");
+		array[35] = loadImage("imageSet\\ocean liner.png");
+		array[36] = loadImage("imageSet\\octopus.png");
+		array[37] = loadImage("imageSet\\p51.png");
+		array[38] = loadImage("imageSet\\pallet.png");
+		array[39] = loadImage("imageSet\\pepper.png");
+		array[40] = loadImage("imageSet\\plane.png");
+		array[41] = loadImage("imageSet\\princess.png");
+		array[42] = loadImage("imageSet\\pufferfish.png");
+		array[43] = loadImage("imageSet\\racecar.png");
+		array[44] = loadImage("imageSet\\rocket.png");
+		array[45] = loadImage("imageSet\\roman.png");
+		array[46] = loadImage("imageSet\\sailboat.png");
+		array[47] = loadImage("imageSet\\shield.png");
+		array[48] = loadImage("imageSet\\ship.png");
+		array[49] = loadImage("imageSet\\shrooms.png");
+		array[50] = loadImage("imageSet\\snowman.png");
+		array[51] = loadImage("imageSet\\soccer ball.png");
+		array[52] = loadImage("imageSet\\spade.png");
+		array[53] = loadImage("imageSet\\star.png");
+		array[54] = loadImage("imageSet\\strawberry.png");
+		array[55] = loadImage("imageSet\\suit.png");
+		array[56] = loadImage("imageSet\\sun.png");
+		array[57] = loadImage("imageSet\\surfboard.png");
+		array[58] = loadImage("imageSet\\tj.png");
+		array[59] = loadImage("imageSet\\town.png");
+		array[60] = loadImage("imageSet\\tree.png");
+		array[61] = loadImage("imageSet\\turtle.png");
+		array[62] = loadImage("imageSet\\ufo.png");
+		array[63] = loadImage("imageSet\\wizard.png");
+		return array;
+	}
+	
+	private Image loadImage(String resource)
+	{
+		Image product = new Image(null, 64, 64);
+		try
+		{
+			InputStream input = this.getClass().getResourceAsStream(resource);
+			ImageLoader loader = new ImageLoader();
+			ImageData [] loaded = loader.load(input);
+			d = Display.getDefault();
+			product = new Image(d, loaded[0]);
+			input.close();
+		}
+		catch (IOException e)
+		{
+			System.err.println("Picture '" + resource + "' not found");
+		}
+		return product;
+	}
+	
+	private boolean isNameValid(String name)
+	{
+		if(name.contains(".") || name.contains("(") || name.contains(")"))
+		{
+			MessageBox error = new MessageBox(this.getShell(),
+					SWT.ERROR);
+			error.setText("Naming Error");
+			error.setMessage("Error: That name is invalid. Names cannot contain periods or parentheses");
+			error.open();
+			return false;
+		}
+		return true;
 	}
 }
